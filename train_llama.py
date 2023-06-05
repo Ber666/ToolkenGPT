@@ -1,7 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
-from typing import Tuple
 import os
 import sys
 import torch
@@ -9,13 +8,14 @@ import fire
 import time
 import json
 import random
+import wandb
 import numpy as np
+from tqdm import tqdm
+from typing import Tuple
 from pathlib import Path
 
 from fairscale.nn.model_parallel.initialize import initialize_model_parallel
-from tqdm import tqdm
 from llama import ModelArgs, Transformer, Tokenizer, LLaMA, FunctionLM
-import wandb
 
 def setup_model_parallel() -> Tuple[int, int]:
     local_rank = int(os.environ.get("LOCAL_RANK", -1))
@@ -24,22 +24,19 @@ def setup_model_parallel() -> Tuple[int, int]:
     torch.distributed.init_process_group("nccl")
     initialize_model_parallel(world_size)
     torch.cuda.set_device(local_rank)
-
-    # seed must be the same in all processes
-    torch.manual_seed(1)
     return local_rank, world_size
 
 
 def load(ckpt_dir: str, tokenizer_path: str, local_rank: int, world_size: int, func_load_path: str, func_dict: dict) -> LLaMA:
     start_time = time.time()
     checkpoints = sorted(Path(ckpt_dir).glob("*.pth"))
-    # print(checkpoints)
     assert (
         world_size == len(checkpoints)
     ), f"Loading a checkpoint for MP={len(checkpoints)} but world size is {world_size}"
     ckpt_path = checkpoints[local_rank]
     print("Loading")
     checkpoint = torch.load(ckpt_path, map_location="cpu")
+    
     with open(Path(ckpt_dir) / "params.json", "r") as f:
         params = json.loads(f.read())
 
@@ -102,24 +99,18 @@ def main(ckpt_dir: str, tokenizer_path: str, input_file: str = None, lr: float =
     testset = prompts[-test_len:]
     trainset = prompts[:-test_len]
 
-
     # only update tokens with gradients required
     optimizer = torch.optim.Adam([p for p in funcmodel.parameters() if p.requires_grad], lr=lr)
 
     # func_dict
     func_dict = funcmodel.func_dict
-
-    # func_list
     func_list = list(func_dict.keys())
     
     from collections import defaultdict
-    # results = defaultdict(list)
     for epoch in range(num_epochs):
         results = defaultdict(list)
         
-        # shuffle trainset
         random.shuffle(trainset)
-
         for case_idx, prompt in tqdm(enumerate(trainset)):
             funcmodel.train()
             # results = generator.generate([prompt], max_gen_len=512, temperature=temperature, top_p=top_p)
@@ -133,8 +124,6 @@ def main(ckpt_dir: str, tokenizer_path: str, input_file: str = None, lr: float =
                 results[i].append(r)
             
             if (case_idx + 1) % 20 == 0:
-                # print(results["tp"][0].shape)
-                # (4,)
                 for i in range(len(func_list)+1):
                     if i != len(func_list):
                         tp, pred, true = sum([r[i] for r in results["tp"]]), sum([r[i] for r in results["pred"]]), sum([r[i] for r in results["true"]])
@@ -173,7 +162,7 @@ def main(ckpt_dir: str, tokenizer_path: str, input_file: str = None, lr: float =
             for i, r in result.items():
                 results[i].append(r)
             
-        for i in range(len(func_list)+1):
+        for i in range(len(func_list) + 1):
             if i != len(func_list):
                 tp, pred, true = sum([r[i] for r in results["tp"]]), sum([r[i] for r in results["pred"]]), sum([r[i] for r in results["true"]])
             else:
@@ -195,14 +184,11 @@ def main(ckpt_dir: str, tokenizer_path: str, input_file: str = None, lr: float =
                         f"test-f1": 2 * tp / (pred + true + 1e-8)
                     })
                 
-                
-        
+
         # save the parameters of func_embed every epoch
         save_dir = f"checkpoints/{dataset}/"
         os.makedirs(save_dir, exist_ok=True)
-
         torch.save(funcmodel.func_embed.state_dict(), f"{save_dir}/epoch_{epoch}.pth")
-        
         results = defaultdict(list)
 
 if __name__ == "__main__":

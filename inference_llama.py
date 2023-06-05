@@ -18,9 +18,7 @@ from tqdm import tqdm
 from llama import ModelArgs, Transformer, Tokenizer, LLaMA, FunctionLM
 from collections import Counter
 
-from funchub.math import _add_, _subtract_, _multiply_, _divide_, _power_, _sqrt_, _log_, _ln_, \
-    _choose_, _permutate_, _gcd_, _lcm_, _root_, _remainder_
-
+from funchub.math import *
 
 
 def setup_model_parallel() -> Tuple[int, int]:
@@ -62,7 +60,7 @@ def load(ckpt_dir: str, tokenizer_path: str, local_rank: int, world_size: int, f
     print(f"Loaded in {time.time() - start_time:.2f} seconds")
     return funcmodel
 
-def func_embedding_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len, self_consistency_k, return_top=5):
+def func_embedding_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len, return_top=5):
     cur_generation = ""
     cur_generation_with_func = ""
     start_length = []
@@ -123,28 +121,7 @@ def func_embedding_inference(templates, case_idx, question, funcmodel, temperatu
 
                     funcmodel.inference_mode = "baseline"
 
-                    if self_consistency_k > 1:
-                        # self consistency check with multiple generations
-                        # set temperature to 0.7 to avoi
-                        res_list = []
-                        for i in range(self_consistency_k):
-                            
-                            results = funcmodel.generate([prompt], max_gen_len=max_gen_len, temperature=0.7, top_p=top_p, stop_token=[29897, 3892], return_top=return_top)
-                            res_list.append(results)
-
-                        # count the number of times each result appears
-                        counter = Counter(res[0][0] for res in res_list)
-
-                        # get the most common result
-                        most_common_result = counter.most_common(1)[0][0]
-
-                        # get the most common result and the token log
-                        for res in res_list:
-                            if res[0][0] == most_common_result:
-                                results = res
-                                break
-                    elif self_consistency_k in [0, 1]:
-                        results = funcmodel.generate([prompt], max_gen_len=max_gen_len, temperature=temperature, top_p=top_p, stop_token=[29897, 3892], return_top=return_top)
+                    results = funcmodel.generate([prompt], max_gen_len=max_gen_len, temperature=temperature, top_p=top_p, stop_token=[29897, 3892], return_top=return_top)
 
                     funcmodel.inference_mode = "func_embedding"
                 
@@ -267,7 +244,7 @@ def baseline_inference(templates, case_idx, question, funcmodel, temperature, to
 
     return log
 
-def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: float = 0.95, mode: str = "baseline", dataset = "original", return_top: int = 5, logits_bias: float = 0, func_load_path: str = "None", self_consistency_k: int =0, st_idx=0, ed_idx=10000):
+def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: float = 0.95, mode: str = "baseline", dataset = "original", return_top: int = 5, logits_bias: float = 0, func_load_path: str = "None", st_idx=0, ed_idx=10000):
     # set random seed
     torch.manual_seed(1)
     torch.cuda.manual_seed_all(1)
@@ -287,7 +264,7 @@ def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: floa
 
     if dataset == "gsm8k-xl":
         for name in os.listdir("data/gsm8k-xl/template"):
-            with open(f"data/gsm8k/template/{name}") as f:
+            with open(f"data/gsm8k-xl/template/{name}") as f:
                 templates[name.split("_")[-1].replace(".txt", "")] = f.read()
         with open(f"data/gsm8k-xl/test.json") as f:
             data = [json.loads(line) for line in f.readlines()]
@@ -376,7 +353,7 @@ def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: floa
         if case_idx >= ed_idx:
             break
         if mode == "func_embedding":
-            log = func_embedding_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len, self_consistency_k, return_top)
+            log = func_embedding_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len, return_top)
         elif mode == "baseline":
             log = baseline_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len)
         
@@ -386,7 +363,7 @@ def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: floa
             except:
                 func_model_name = func_load_path
 
-            output_dir = f"final_outputs/{dataset}"
+            output_dir = f"outputs/{dataset}"
             os.makedirs(output_dir, exist_ok=True)
 
             with open(f"{output_dir}/inference-{size}-{func_model_name}-{mode}-{dataset}-{logits_bias}.jsonl", "a") as f:

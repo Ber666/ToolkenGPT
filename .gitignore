@@ -1,1 +1,5 @@
 data/
+checkpoints/
+*.zip
+*.pyc
+wandb/
