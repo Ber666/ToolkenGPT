@@ -1,5 +1,6 @@
 data/
 checkpoints/
+outputs/
 *.zip
 *.pyc
 wandb/
