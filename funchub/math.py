@@ -14,14 +14,14 @@ def custom_round(x, decimal_places=2):
         return round(x, decimal_places)
 
 # this function converts a number in scientific notation to decimal notation
-def sci_to_decimal(sci_str):
+def scito_decimal(sci_str):
     def split_exponent(number_str):
         parts = number_str.split("e")
         coefficient = parts[0]
         exponent = int(parts[1]) if len(parts) == 2 else 0
         return coefficient, exponent
 
-    def multiply_by_10(number_str, exponent):
+    def multiplyby_10(number_str, exponent):
         if exponent == 0:
             return number_str
 
@@ -43,7 +43,7 @@ def sci_to_decimal(sci_str):
             return number_str
 
     coefficient, exponent = split_exponent(sci_str)
-    decimal_str = multiply_by_10(coefficient, exponent)
+    decimal_str = multiplyby_10(coefficient, exponent)
 
     # remove trailing zeros
     if "." in decimal_str:
@@ -63,17 +63,17 @@ def normalize(res, round_to=2):
         
         # scientific notation
         if "e" in res:
-            res = sci_to_decimal(res)
+            res = scito_decimal(res)
 
         return res
 
 # 1. add
-def _add_(*args):
+def add_(*args):
 
     return normalize(sum(args))
 
 # 2. subtract
-def _subtract_(*args):
+def subtract_(*args):
 
     res = args[0]
     for arg in args[1:]:
@@ -81,7 +81,7 @@ def _subtract_(*args):
     return normalize(res)
 
 # 3. multiply
-def _multiply_(*args):
+def multiply_(*args):
 
     res = args[0]
     for arg in args[1:]:
@@ -89,7 +89,7 @@ def _multiply_(*args):
     return normalize(res)
 
 # 4. divide
-def _divide_(*args):
+def divide_(*args):
 
     res = args[0]
     for arg in args[1:]:
@@ -97,7 +97,7 @@ def _divide_(*args):
     return normalize(res)
 
 # 5. power
-def _power_(*args):
+def power_(*args):
         
     res = args[0]
     for arg in args[1:]:
@@ -105,12 +105,12 @@ def _power_(*args):
     return normalize(res)
 
 # 6. square root
-def _sqrt_(*args):
+def sqrt_(*args):
     res = args[0]
     return normalize(math.sqrt(res))
 
 # 7. 10th log
-def _log_(*args):
+def log_(*args):
     # if only one argument is passed, it is 10th log
     if len(args) == 1:
         res = args[0]
@@ -124,39 +124,39 @@ def _log_(*args):
         raise Exception("Invalid number of arguments passed to log function")
 
 # 8. natural log
-def _ln_(*args):
+def ln_(*args):
     res = args[0]
     return normalize(math.log(res))
 
 
 # 9. choose
-def _choose_(*args):
+def choose_(*args):
     n = args[0]
     r = args[1]
     return normalize(math.comb(n, r))
 
 # 10. permutation
-def _permutate_(*args):
+def permutate_(*args):
     n = args[0]
     r = args[1]
     return normalize(math.perm(n, r))
 
 # 11. greatest common divisor
-def _gcd_(*args):
+def gcd_(*args):
     res = args[0]
     for arg in args[1:]:
         res = math.gcd(res, arg)
     return normalize(res)
 
 # 12. least common multiple
-def _lcm_(*args):
+def lcm_(*args):
     res = args[0]
     for arg in args[1:]:
         res = res * arg // math.gcd(res, arg)
     return normalize(res)
 
 # 13. remainder
-def _remainder_(*args):
+def remainder_(*args):
     dividend = args[0]
     divisor = args[1]
     return normalize(dividend % divisor)
