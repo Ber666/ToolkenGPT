@@ -70,9 +70,6 @@ def func_embedding_inference(templates, case_idx, question, funcmodel, temperatu
 
     funcmodel.inference_mode = "func_embedding"
 
-    # start time
-    start_time = time.time()
-
     # get func list
     func_map = list(funcmodel.func_dict.keys())
 
@@ -80,13 +77,6 @@ def func_embedding_inference(templates, case_idx, question, funcmodel, temperatu
         results = []
         func_calls = []
         while True:
-            # current time
-            current_time = time.time()
-
-            # time limit to avoid infinite loop, 2 minutes
-            if current_time - start_time > 120:
-                # jumpp to exception
-                raise Exception("Time limit exceeded")
 
             prompt = templates["general"].replace("[QUESTION]", question) + cur_generation
             results = funcmodel.generate([prompt], max_gen_len=max_gen_len, temperature=temperature, top_p=top_p, stop_token=[13], return_top=return_top)
@@ -162,7 +152,7 @@ def func_embedding_inference(templates, case_idx, question, funcmodel, temperatu
                         args = f"({', '.join(temp)})"
                     
                     try:
-                        res = eval(f"_{op[1:-1]}_{args}")
+                        res = eval(f"{op[1:-1]}_{args}")
                         func_calls.append(f"{op}{args} = {res}")
 
                         start_length.append(len(cur_generation.split(op)[0]))
@@ -175,7 +165,7 @@ def func_embedding_inference(templates, case_idx, question, funcmodel, temperatu
                         # disable all the numbers
                         prompt = templates["general"].replace("[QUESTION]", question) + cur_generation
                         results = funcmodel.generate([prompt], max_gen_len=1, temperature=temperature, top_p=top_p, stop_token=[13], return_top=return_top,
-                                                     disable_token = [29900, 29896, 29906, 29941, 29946, 29945, 29953, 29955, 29947, 29929]) # disable all the numbers
+                                                     disable_token = [29900, 29896, 29906, 29941, 29946, 29945, 29953, 29955, 29947, 29929]) # disable all the numbers: 0-9
                         if return_top > 0:
                             results, token_log = results
                             logs.append(token_log)
@@ -184,7 +174,7 @@ def func_embedding_inference(templates, case_idx, question, funcmodel, temperatu
                         cur_generation = results[0].replace(templates["general"].replace("[QUESTION]", question), "")
 
                     except:
-                        # trace back
+                        # backtrace 
                         current_token += 1
                         decode_token = lambda x: funcmodel.tokenizer.decode(x) if x < 32000 else func_map[x - 32000]
                         cur_generation = cur_generation.split(op)[0] + decode_token(record_tokens[1][current_token][0])
