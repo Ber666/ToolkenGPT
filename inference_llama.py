@@ -307,7 +307,7 @@ def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: floa
     
     elif dataset == "funcqa_oh":
         for name in os.listdir("data/funcqa/template_oh"):
-            with open(f"data/ohqa/template_oh/{name}") as f:
+            with open(f"data/funcqa/template_oh/{name}") as f:
                 templates[name.split("_")[-1].replace(".txt", "")] = f.read()
         
         with open("data/funcqa/funcqa_oh.json") as f:
