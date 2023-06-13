@@ -3,5 +3,6 @@ checkpoints/
 outputs/
 *.zip
 *.pyc
+plan.md
 wandb/
 /virtualhome/src/virtualhome/dataset/

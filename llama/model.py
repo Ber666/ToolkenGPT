@@ -275,7 +275,6 @@ class FunctionLM(nn.Module):
         self.logits_bias = logits_bias
 
     def get_loss(self, raw_inputs, only_functoken=False):
-        
         assert len(raw_inputs) == 1
         raw_inputs = raw_inputs[0]
 

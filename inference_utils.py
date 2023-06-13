@@ -1,3 +1,5 @@
+import re
+
 def func_embedding_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len, return_top=5):
     cur_generation = ""
     cur_generation_with_func = ""
@@ -101,6 +103,35 @@ def func_embedding_inference(templates, case_idx, question, funcmodel, temperatu
             "generation": cur_generation.replace("\n", "\\n").strip(),
             "status": str(e)
         }
+    return log
+
+
+def vh_embedding_inference(case_idx, question, funcmodel, temperature, top_p, func_dict, max_func_call):
+    funcmodel.inference_mode = "func_embedding"
+    inputs = question[0]
+    disable_funcs = question[1]
+    last_func = []
+    for _ in range(max_func_call):
+        inputs = funcmodel.generate([inputs], max_gen_len=1, temperature=temperature, top_p=top_p,return_top=0, disable_func=disable_funcs + last_func, no_left_parens=True)[0]
+
+        if inputs.endswith(">"):
+            inputs = inputs.replace("]<", "] <")
+            inputs += '\n'
+            last_func = [] if "[WALK]" in inputs.split("\n")[-2] else re.findall(r"\[.*?\]", inputs.split("\n")[-2])
+            print("last func", last_func)
+        if "[END]" in inputs.split("Plan:")[-1]:
+            break
+    
+
+    log = {
+    "case_idx": case_idx,
+    "question": question[0],
+    "func_calls": inputs.replace(question[0], "").strip().split("\n"),
+    "generation": inputs.replace("\n", "\\n").strip(),
+    # no need to return logs
+    # "token_log": logs,
+    "status": "success"
+    }
     return log
 
 def baseline_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len):
