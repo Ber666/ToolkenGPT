@@ -4,3 +4,6 @@ outputs/
 *.zip
 *.pyc
 wandb/
+virtualhome/
+! virtualhome/src/
+virtualhome/src/virtualhome/dataset
