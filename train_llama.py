@@ -92,6 +92,8 @@ def main(ckpt_dir: str, tokenizer_path: str, input_file: str = None, lr: float =
         test_len = 39
     elif dataset == "vh":
         test_len = 47
+    elif dataset == "kamel":
+        test_len = 1000
     
     testset = prompts[-test_len:]
     trainset = prompts[:-test_len]

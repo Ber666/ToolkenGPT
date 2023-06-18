@@ -6,7 +6,7 @@ Source code for [ToolkenGPT: Augmenting Frozen Language Models with Massive Tool
 + Acquire the checkpoints of LLaMA from MetaAI and install all required packages. Please refer to [LLaMA official repo](https://github.com/facebookresearch/llama).
 + Download the data from [here](https://drive.google.com/file/d/1UgDGmsd5ELZFWhloJWyuV-awlhedHKpj/view?usp=sharing)
 + (For VirtualHome) Please download the data following the instructions [here](virtualhome/README.md).
-    > A side note: the folder `virtualhome` is from its [official repo](https://github.com/xavierpuigf/virtualhome), but we fixed some small bugs that leads to false negative results.
+    > A side note: the folder `virtualhome` is from its [official repo](https://github.com/xavierpuigf/virtualhome), but we fixed some small bugs in the evolving graph.
 
 ## GSM8K-XL
 
@@ -46,7 +46,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.run --nproc_per_node 4 
 
 ### Training
 ```bash
-python -m torch.distributed.run --nproc_per_node 2 --master_port 3001 train_llama.py --ckpt_dir $LLAMA_CKPTS/13B --tokenizer_path $LLAMA_CKPTS/tokenizer.model --dataset vh --input_file data/vh/legal_train_v4_embedding.json --only_functoken True --num_samples 47 --num_epochs 10
+python -m torch.distributed.run --nproc_per_node 2 --master_port 3001 train_llama.py --ckpt_dir $LLAMA_CKPTS/13B --tokenizer_path $LLAMA_CKPTS/tokenizer.model --dataset vh --input_file data/vh/legal_train_v4_embedding.json --only_functoken True --num_epochs 10
 ```
 
 
@@ -55,3 +55,29 @@ python -m torch.distributed.run --nproc_per_node 2 --master_port 3001 train_llam
 ```bash
 CUDA_VISIBLE_DEVICES=3,5 python -m torch.distributed.run --nproc_per_node 2 inference_llama.py --ckpt_dir $LLAMA_CKPTS/13B --tokenizer_path $LLAMA_CKPTS/tokenizer.model --mode vh_embedding_inference --dataset vh --func_load_path checkpoints/vh/epoch_9.pth --save_name default --logits_bias 10.0
 ```
+
+### Evaluation
+
+See `evaluation/eval_vh.ipynb`
+
+## KAMEL
+### Train
++ synthetic data
+```bash
+CUDA_VISIBLE_DEVICES=2,3 python -m torch.distributed.run --nproc_per_node 2 --master_port 3002 train_llama.py --ckpt_dir $LLAMA_CKPTS/13B --tokenizer_path $LLAMA_CKPTS/tokenizer.model --dataset kamel --input_file data/kamel/train_clean.json --func_dict_path data/kamel/idx_func_dict.json --only_functoken False ---log_every 500 --num_epochs 10
+```
+
++ real data
+```bash
+CUDA_VISIBLE_DEVICES=2,3 python -m torch.distributed.run --nproc_per_node 2 --master_port 3002 train_llama.py --ckpt_dir $LLAMA_CKPTS/13B --tokenizer_path $LLAMA_CKPTS/tokenizer.model --dataset kamel --input_file data/kamel/kamel_id_train.json --func_dict_path data/kamel/idx_func_dict.json --only_functoken False ---log_every 500 --num_epochs 10
+```
+
+### Inference
+
+```bash
+CUDA_VISIBLE_DEVICES=2,3 python -m torch.distributed.run --nproc_per_node 2 inference_llama.py --ckpt_dir $LLAMA_CKPTS/13B --tokenizer_path $LLAMA_CKPTS/tokenizer.model --mode kamel_embedding_inference --dataset kamel_30 --func_load_path checkpoints/kamel/epoch_0.pth --logits_bias 10
+```
+
+### Evaluation
+
+See `evaluation/eval_kamel.ipynb`

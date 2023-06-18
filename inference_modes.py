@@ -133,3 +133,44 @@ def vh_embedding_inference(case_idx, question, funcmodel, temperature, top_p, ma
     "status": "success"
     }
     return log
+
+
+def kamel_embedding_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len, max_func_call):
+
+    funcmodel.inference_mode = "func_embedding"
+    cur_generation = ""
+    if "funcgeneral" not in templates:
+        templates["funcgeneral"] = templates["general"]
+    try:
+        results = []
+        func_calls = []
+        while True:
+            if max_func_call == 0:
+                break
+            prompt = templates["funcgeneral"].replace("[QUESTION]", question) + cur_generation
+
+            results = funcmodel.generate([prompt], max_gen_len=max_gen_len, temperature=temperature, top_p=top_p, stop_token=[13])
+            max_func_call -= 1
+            
+            cur_generation = results[0].replace(templates["funcgeneral"].replace("[QUESTION]", question), "")
+            # one function token is enough
+            break
+        log = {
+            "case_idx": case_idx,
+            "question": question,
+            "func_calls": func_calls,
+            "generation": cur_generation.replace("\n", "\\n").strip(),
+            "status": "success"
+        }
+        # f.write(json.dumps(log) + "\n")
+
+    except Exception as e:
+        # if local_rank == 0:
+        log = {
+            "case_idx": case_idx,
+            "question": question,
+            "func_calls": func_calls,
+            "generation": cur_generation.replace("\n", "\\n").strip(),
+            "status": str(e)
+        }
+    return log

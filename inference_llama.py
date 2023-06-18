@@ -15,7 +15,7 @@ from pathlib import Path
 from fairscale.nn.model_parallel.initialize import initialize_model_parallel
 from tqdm import tqdm
 from llama import ModelArgs, Transformer, Tokenizer, FunctionLM
-from inference_modes import func_embedding_inference, vh_embedding_inference
+from inference_modes import func_embedding_inference, kamel_embedding_inference, vh_embedding_inference
 from funchub.math import *
 
 
@@ -139,6 +139,25 @@ def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: floa
         max_gen_len = 96
         max_func_call = 32
 
+
+    elif dataset.startswith("kamel"):
+        n_first = int(dataset.split("_")[-1])
+        for name in os.listdir("data/kamel/template"):
+            with open(f"data/kamel/template/{name}") as f:
+                templates[name.split("_")[-1].replace(".txt", "")] = f.read()
+        
+        with open(f"data/kamel/test_first_{n_first}.json") as f:
+            data = json.load(f)
+            test_cases = [i["question"] for i in data]
+        # func_dict = {f"<{r}>": ind for ind, r in enumerate(func_dict)}
+        func_dict = json.load(open("data/kamel/func_dict.json"))
+        func_dict = {f"<{k}>": v for k, v in func_dict.items()}
+        func_dict = {k: v for k, v in func_dict.items() if v < n_first}
+        print(len(func_dict))
+        max_gen_len = 30
+        max_func_call = 1
+
+
     funcmodel = load(ckpt_dir, tokenizer_path, local_rank, world_size, func_load_path=func_load_path, func_dict=func_dict)
     funcmodel.set_bias(logits_bias)
     funcmodel.eval()
@@ -150,10 +169,10 @@ def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: floa
             break
         if mode == "func_embedding":
             log = func_embedding_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len, return_top)
-        elif mode == "baseline":
-            log = baseline_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len)
         elif mode == "vh_embedding_inference":
             log = vh_embedding_inference(case_idx, question, funcmodel, temperature, top_p, max_func_call)
+        elif mode == "kamel_embedding_inference":
+            log = kamel_embedding_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len, max_func_call)
 
         if local_rank == 0:
             try:
