@@ -15,7 +15,7 @@ from pathlib import Path
 from fairscale.nn.model_parallel.initialize import initialize_model_parallel
 from tqdm import tqdm
 from llama import ModelArgs, Transformer, Tokenizer, FunctionLM
-from inference_llama import func_embedding_inference, baseline_inference, vh_embedding_inference
+from inference_modes import func_embedding_inference, vh_embedding_inference
 from funchub.math import *
 
 
@@ -108,7 +108,7 @@ def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: floa
         assert mode in ["vh_embedding_inference", "baseline"]
         with open("data/vh/legal_test_v2.json") as f:
             file_list = json.load(f)
-        with open("data/vh/func_dict_v4.json") as f:
+        with open("data/vh/func_dict.json") as f:
             func_dict = json.load(f)
 
         if mode == "vh_embedding_inference":
@@ -136,27 +136,6 @@ def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: floa
             print(test_cases[0][0]+"[START]")
             print(test_cases[0][1])
 
-        elif mode == "baseline":
-            test_cases = []
-            with open("data/vh/template/vh_baseline_v2.txt") as f:
-                template = f.read()
-            templates = {"general": template}
-
-            for script_file, state_file in file_list:
-                with open(script_file) as f:
-                    script = f.read()
-                    existing_obj_list = []
-                    for fun in func_dict:
-                        if fun.startswith("<"):
-                            existing_obj_list.append(fun[1:-1])
-
-                    desc = get_desc(graph_file_name=state_file, script_file_name=script_file, obj_list=existing_obj_list)
-                    
-                    test_cases.append(desc)
-
-            print(test_cases[0])
-
-        stop_token = [[13,13]]
         max_gen_len = 96
         max_func_call = 32
 
@@ -174,7 +153,7 @@ def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: floa
         elif mode == "baseline":
             log = baseline_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len)
         elif mode == "vh_embedding_inference":
-            log = vh_embedding_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len, return_top)
+            log = vh_embedding_inference(case_idx, question, funcmodel, temperature, top_p, max_func_call)
 
         if local_rank == 0:
             try:

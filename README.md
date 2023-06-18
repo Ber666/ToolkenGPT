@@ -1,10 +1,13 @@
 # ToolkenGPT
 Source code for [ToolkenGPT: Augmenting Frozen Language Models with Massive Tools via Tool Embeddings](https://arxiv.org/abs/2305.11554)
 ![Figure](assets/figure.png)
-## Getting Started
+## Preparation
 + Our experiments are conducted with LLaMA-13B/33B, which takes at least 2/4 GPUs of 24GB memory each.
 + Acquire the checkpoints of LLaMA from MetaAI and install all required packages. Please refer to [LLaMA official repo](https://github.com/facebookresearch/llama).
 + Download the data from [here](https://drive.google.com/file/d/1UgDGmsd5ELZFWhloJWyuV-awlhedHKpj/view?usp=sharing)
++ (For VirtualHome) Please download the data following the instructions [here](virtualhome/README.md).
+    > A side note: the folder `virtualhome` is from its [official repo](https://github.com/xavierpuigf/virtualhome), but we fixed some small bugs that leads to false negative results.
+
 ## GSM8K-XL
 
 ### Train

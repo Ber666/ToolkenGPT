@@ -106,7 +106,7 @@ def func_embedding_inference(templates, case_idx, question, funcmodel, temperatu
     return log
 
 
-def vh_embedding_inference(case_idx, question, funcmodel, temperature, top_p, func_dict, max_func_call):
+def vh_embedding_inference(case_idx, question, funcmodel, temperature, top_p, max_func_call):
     funcmodel.inference_mode = "func_embedding"
     inputs = question[0]
     disable_funcs = question[1]
@@ -132,30 +132,4 @@ def vh_embedding_inference(case_idx, question, funcmodel, temperature, top_p, fu
     # "token_log": logs,
     "status": "success"
     }
-    return log
-
-def baseline_inference(templates, case_idx, question, funcmodel, temperature, top_p, max_gen_len):
-    funcmodel.inference_mode = "baseline"
-    cur_generation = ""
-    try:
-        prompt = templates["general"].replace("[QUESTION]", question) + cur_generation
-        results = funcmodel.generate([prompt], max_gen_len=max_gen_len, temperature=temperature, top_p=top_p, stop_token=[13])
-        
-        cur_generation = results[0].replace(templates["general"].replace("[QUESTION]", question), "")
-
-        log = {
-            "case_idx": case_idx,
-            "question": question,
-            "generation": cur_generation.replace("\n", "\\n").strip(),
-            "status": "success"
-        }
-    except Exception as e:
-        # if local_rank == 0:
-        log = {
-            "case_idx": case_idx,
-            "question": question,
-            "generation": cur_generation.replace("\n", "\\n").strip(),
-            "status": str(e)
-        }
-
     return log
