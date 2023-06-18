@@ -4,7 +4,7 @@ Source code for [ToolkenGPT: Augmenting Frozen Language Models with Massive Tool
 ## Preparation
 + Our experiments are conducted with LLaMA-13B/33B, which takes at least 2/4 GPUs of 24GB memory each.
 + Acquire the checkpoints of LLaMA from MetaAI and install all required packages. Please refer to [LLaMA official repo](https://github.com/facebookresearch/llama).
-+ Download the data from [here](https://drive.google.com/file/d/1UgDGmsd5ELZFWhloJWyuV-awlhedHKpj/view?usp=sharing)
++ Download the data from [here](https://drive.google.com/file/d/1W_NkZNo9Kw175Eox8n4jmofpxgOYyg9k/view?usp=sharing) (all datasets uploaded)
 + (For VirtualHome) Please download the data following the instructions [here](virtualhome/README.md).
     > A side note: the folder `virtualhome` is from its [official repo](https://github.com/xavierpuigf/virtualhome), but we fixed some small bugs in the evolving graph.
 
@@ -67,7 +67,7 @@ See `evaluation/eval_vh.ipynb`
 CUDA_VISIBLE_DEVICES=2,3 python -m torch.distributed.run --nproc_per_node 2 --master_port 3002 train_llama.py --ckpt_dir $LLAMA_CKPTS/13B --tokenizer_path $LLAMA_CKPTS/tokenizer.model --dataset kamel --input_file data/kamel/train_clean.json --func_dict_path data/kamel/idx_func_dict.json --only_functoken False ---log_every 500 --num_epochs 10
 ```
 
-+ real data
++ supervised data
 ```bash
 CUDA_VISIBLE_DEVICES=2,3 python -m torch.distributed.run --nproc_per_node 2 --master_port 3002 train_llama.py --ckpt_dir $LLAMA_CKPTS/13B --tokenizer_path $LLAMA_CKPTS/tokenizer.model --dataset kamel --input_file data/kamel/kamel_id_train.json --func_dict_path data/kamel/idx_func_dict.json --only_functoken False ---log_every 500 --num_epochs 10
 ```
