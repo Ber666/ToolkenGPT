@@ -6,3 +6,8 @@ outputs/
 plan.md
 wandb/
 /virtualhome/src/virtualhome/dataset/
+*.jsonl
+*.sh
+transform.ipynb
+grade-school-math
+peft

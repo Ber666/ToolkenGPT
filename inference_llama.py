@@ -52,7 +52,7 @@ def load(ckpt_dir: str, tokenizer_path: str, local_rank: int, world_size: int, f
     return funcmodel
 
 
-def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: float = 0.95, mode: str = "baseline", dataset = "original", return_top: int = 5, logits_bias: float = 0, func_load_path: str = "None", st_idx=0, ed_idx=10000):
+def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: float = 0.95, mode: str = "baseline", dataset = "original", return_top: int = 5, logits_bias: float = 0, func_load_path: str = "None", st_idx=0, ed_idx=10000, suffix=""):
     # set random seed
     torch.manual_seed(1)
     torch.cuda.manual_seed_all(1)
@@ -183,7 +183,7 @@ def main(ckpt_dir: str, tokenizer_path: str, temperature: float = 0, top_p: floa
             output_dir = f"outputs/{dataset}"
             os.makedirs(output_dir, exist_ok=True)
 
-            with open(f"{output_dir}/inference-{size}-{func_model_name}-{mode}-{dataset}-{logits_bias}.jsonl", "a") as f:
+            with open(f"{output_dir}/inference-{size}-{func_model_name}-{mode}-{dataset}-bias_{logits_bias}{suffix}.jsonl", "a") as f:
                 f.write(json.dumps(log) + "\n")
 
 

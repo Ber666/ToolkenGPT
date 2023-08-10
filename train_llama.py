@@ -52,7 +52,7 @@ def load(ckpt_dir: str, tokenizer_path: str, local_rank: int, world_size: int, f
     return funcmodel
 
 
-def main(ckpt_dir: str, tokenizer_path: str, input_file: str = None, lr: float = 1e-3, num_epochs: int = 20, dataset: str = "gsm8k-xl", only_functoken=False, log_each=False):
+def main(ckpt_dir: str, tokenizer_path: str, input_file: str = None, lr: float = 1e-3, num_epochs: int = 20, dataset: str = "gsm8k-xl", log_prefix="", only_functoken=False, log_each=False):
 
     torch.manual_seed(1)
     torch.cuda.manual_seed_all(1)
@@ -182,7 +182,7 @@ def main(ckpt_dir: str, tokenizer_path: str, input_file: str = None, lr: float =
                     })
 
         # save the parameters of func_embed every epoch
-        save_dir = f"checkpoints/{dataset}/"
+        save_dir = f"checkpoints/{log_prefix}{dataset}/"
         os.makedirs(save_dir, exist_ok=True)
         torch.save(funcmodel.func_embed.state_dict(), f"{save_dir}/epoch_{epoch}.pth")
         results = defaultdict(list)
