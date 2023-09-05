@@ -34,7 +34,6 @@ def func_embedding_inference(templates, case_idx, question, funcmodel, temperatu
                             bias += len(func_calls[i]) - (end_length[i] - start_length[i])
                     else:
                         cur_generation_with_func = cur_generation
-                    
                     prompt = templates[op].replace("[QUESTION]", question) + cur_generation_with_func
                     len_prompt = len(prompt)
                     funcmodel.inference_mode = "baseline"
