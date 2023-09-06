@@ -4,7 +4,7 @@ Source code for [ToolkenGPT: Augmenting Frozen Language Models with Massive Tool
 ## Preparation
 + Our experiments are conducted with LLaMA-13B/33B, which takes at least 2/4 GPUs of 24GB memory each.
 + Acquire the checkpoints of LLaMA from MetaAI and install all required packages. Please refer to [LLaMA official repo](https://github.com/facebookresearch/llama).
-+ Download the data from [here](https://drive.google.com/file/d/1TOkpszfy53fp9ZInBeuNf87Ee0Yy4bRS/view?usp=drive_link) (all datasets uploaded)
++ Download the data from [here](https://drive.google.com/file/d/12iNW6i9YfZYBrp4pUxylXUNq0NiWGBEu/view?usp=sharing) (all datasets uploaded)
 + (For VirtualHome) Please download the data following the instructions [here](virtualhome/README.md).
     > A side note: the folder `virtualhome` is from its [official repo](https://github.com/xavierpuigf/virtualhome), but we fixed some small bugs in the evolving graph.
 
