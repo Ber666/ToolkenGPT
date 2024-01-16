@@ -1,7 +1,7 @@
 # ToolkenGPT
-Source code for [ToolkenGPT: Augmenting Frozen Language Models with Massive Tools via Tool Embeddings](https://arxiv.org/abs/2305.11554)
+**Source code for [ToolkenGPT: Augmenting Frozen Language Models with Massive Tools via Tool Embeddings](https://arxiv.org/abs/2305.11554)**
 
-**[NeurIPS 2023 (oral)](https://nips.cc/Conferences/2023)** | **[Best Paper Award at SoCalNLP 2023](https://socalnlp.github.io/symp23/index.html)**
+[NeurIPS 2023 (oral)](https://nips.cc/Conferences/2023) | [Best Paper Award at SoCalNLP 2023](https://socalnlp.github.io/symp23/index.html)
 
 ![Figure](assets/image.png)
 
